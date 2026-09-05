@@ -1,10 +1,24 @@
 import "./globals.css";
 
+
 export const metadata = {
   title: "PolyMirror",
-  description: "Mobile-friendly URL mirror dashboard"
+  description:
+    "Automated authorized media mirroring dashboard"
 };
 
-export default function RootLayout({ children }) {
-  return <html lang="en"><body>{children}</body></html>;
+
+export default function RootLayout({
+  children
+}) {
+
+  return (
+    <html lang="en">
+
+      <body>
+        {children}
+      </body>
+
+    </html>
+  );
 }
