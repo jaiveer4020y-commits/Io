@@ -1,1 +1,385 @@
-:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#090a0d;color:#f4f4f5;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,textarea{font:inherit}.shell{width:min(820px,100%);margin:auto;padding:20px 14px 50px}header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px}.nav{display:flex;gap:8px}.eyebrow{font-size:11px;letter-spacing:.14em;color:#8d93a1;font-weight:700}h1{margin:4px 0 0;font-size:30px}h2{margin:0;font-size:18px}.card{background:#111318;border:1px solid #242730;border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 10px 35px #0003}label{display:block;font-size:13px;font-weight:700;color:#b7bbc5;margin:0 0 7px}label span{color:#6f7480;font-weight:400}input,textarea{width:100%;padding:14px;border-radius:12px;border:1px solid #2c303a;background:#090a0d;color:white;outline:none;margin-bottom:15px}textarea{min-height:110px;resize:vertical;font-family:ui-monospace,monospace;font-size:12px}input:focus,textarea:focus{border-color:#666d7b}.row{display:flex;gap:10px}.between{justify-content:space-between;align-items:center}.no-margin{margin:0}.small,.settings,.copy{border:1px solid #30343e;background:#171a20;color:#dfe2e8;border-radius:10px;padding:8px 11px;text-decoration:none;cursor:pointer}.hosts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin:10px 0 16px}.host{text-align:left;padding:13px;border:1px solid #2b2f38;border-radius:12px;background:#0c0e12;color:#bfc3cc;cursor:pointer}.host.active{border-color:#777e8c;color:#fff;background:#181b21}.host span{display:inline-block;width:18px;color:#fff}.host small{display:block;color:#777e8c;margin-top:5px}.primary{width:100%;border:0;border-radius:13px;padding:14px;background:#f4f4f5;color:#090a0d;font-weight:800;cursor:pointer}.primary:disabled{opacity:.45;cursor:not-allowed}.job{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #242730;padding:13px 0}.job:first-of-type{border-top:0}.muted,.note{color:#8e94a0;font-size:13px}.note{text-align:center;line-height:1.5}.error{color:#ff8e8e;font-size:12px;margin-top:5px}.resultLink{display:block;color:#aeb4ff;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:5px}.combined{margin-top:12px}.resultFrame{width:100%;height:240px;border:1px solid #2c303a;border-radius:12px;background:#111318}.setting{display:flex;justify-content:space-between;gap:12px;padding:14px 0;border-top:1px solid #242730}code{color:#aeb4c0}.settingTitle{display:flex;justify-content:space-between;margin-bottom:14px}.settingTitle span{font-size:12px;color:#7d8390}.actions{margin:16px 0}.actions .primary{flex:1}.docLink{color:#aeb4ff;text-decoration:none;font-size:13px}.docTabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.docTabs a{border:1px solid #30343e;background:#171a20;color:#dfe2e8;border-radius:10px;padding:9px 12px;text-decoration:none}.docCard{padding:0;overflow:hidden;height:75vh;min-height:500px}.docCard iframe{width:100%;height:100%;border:0;background:white}@media(max-width:650px){.hosts{grid-template-columns:1fr 1fr}}@media(max-width:480px){.hosts{grid-template-columns:1fr}.shell{padding-top:14px}.nav{flex-direction:column}.docCard{min-height:70vh}}
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #050505;
+  color: #fff;
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.dashboard {
+  min-height: 100vh;
+  padding: 24px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.topbar p {
+  color: #888;
+  margin: 6px 0 0;
+}
+
+.settingsLink {
+  color: #fff;
+  text-decoration: none;
+  background: #181818;
+  border: 1px solid #333;
+  padding: 10px 15px;
+  border-radius: 10px;
+}
+
+.panel {
+  background: #101010;
+  border: 1px solid #242424;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 18px;
+}
+
+.panel h2 {
+  margin-top: 0;
+}
+
+.categoryGroup {
+  margin-bottom: 20px;
+}
+
+.categoryGroup h3 {
+  color: #999;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.buttonGrid {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(150px, 1fr)
+    );
+  gap: 10px;
+}
+
+.catalogButton {
+  background: #181818;
+  color: white;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 14px 10px;
+}
+
+.catalogButton:hover {
+  background: #252525;
+}
+
+.catalogButton.active {
+  background: #fff;
+  color: #000;
+}
+
+.batchControls {
+  display: flex;
+  gap: 15px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.batchControls label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #aaa;
+}
+
+select,
+input {
+  background: #181818;
+  border: 1px solid #3a3a3a;
+  color: white;
+  padding: 13px;
+  border-radius: 9px;
+}
+
+.startButton {
+  background: #fff;
+  color: #000;
+  border: 0;
+  padding: 14px 22px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.startButton:disabled {
+  opacity: 0.5;
+}
+
+.smallText {
+  color: #777;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(110px, 1fr)
+    );
+  gap: 10px;
+}
+
+.stats div {
+  background: #181818;
+  border-radius: 12px;
+  padding: 15px;
+}
+
+.stats strong {
+  display: block;
+  font-size: 25px;
+}
+
+.stats span {
+  color: #777;
+  font-size: 12px;
+}
+
+.progressBar {
+  margin-top: 20px;
+  height: 8px;
+  background: #222;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progressBar div {
+  height: 100%;
+  background: #fff;
+  transition: width 0.4s;
+}
+
+.status {
+  color: #aaa;
+}
+
+.catalogList {
+  display: grid;
+  gap: 8px;
+}
+
+.catalogItem {
+  padding: 13px;
+  background: #181818;
+  border-radius: 10px;
+}
+
+.catalogItem strong {
+  display: block;
+}
+
+.catalogItem span {
+  color: #666;
+  font-size: 12px;
+}
+
+.error {
+  background: #301010;
+  border: 1px solid #662222;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.success {
+  color: #8cff8c;
+}
+
+.settingsPage {
+  min-height: 100vh;
+  padding: 25px;
+}
+
+.settingsPanel {
+  max-width: 700px;
+  margin: auto;
+  background: #101010;
+  border: 1px solid #242424;
+  border-radius: 16px;
+  padding: 25px;
+}
+
+.settingsPanel label {
+  display: block;
+  margin: 20px 0;
+  color: #aaa;
+}
+
+.settingsPanel input {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.settingsPanel pre {
+  white-space: pre-wrap;
+  background: #050505;
+  padding: 15px;
+  border-radius: 10px;
+  color: #aaa;
+}
+
+.backLink {
+  display: inline-block;
+  color: white;
+  margin-top: 20px;
+}
+
+
+/* =========================================
+   PLAYER
+   ========================================= */
+
+.playerPage {
+  min-height: 100vh;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+}
+
+.playerHeader {
+  position: relative;
+  z-index: 10;
+  padding: 18px 22px;
+  background: #080808;
+}
+
+.serverTitle {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.serverIcon {
+  margin-right: 8px;
+}
+
+.videoTitle {
+  margin-top: 4px;
+  color: #aaa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.iframeContainer {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  position: relative;
+}
+
+.iframeContainer iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.playerMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  flex-direction: column;
+  gap: 10px;
+  color: #aaa;
+  text-align: center;
+  padding: 20px;
+}
+
+.serverButtons {
+  display: flex;
+  gap: 10px;
+  padding: 15px;
+  overflow-x: auto;
+  background: #080808;
+}
+
+.serverButton {
+  flex: 0 0 auto;
+  background: #181818;
+  border: 1px solid #333;
+  color: white;
+  border-radius: 9px;
+  padding: 12px 18px;
+  text-transform: capitalize;
+}
+
+.serverButton.active {
+  background: white;
+  color: black;
+}
+
+
+@media (max-width: 600px) {
+
+  .dashboard {
+    padding: 14px;
+  }
+
+  .topbar h1 {
+    font-size: 25px;
+  }
+
+  .panel {
+    padding: 15px;
+  }
+
+  .buttonGrid {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+  .iframeContainer {
+    aspect-ratio: 16 / 9;
+  }
+
+  .playerHeader {
+    padding: 12px;
+  }
+
+  .serverTitle {
+    font-size: 16px;
+  }
+
+  .videoTitle {
+    font-size: 15px;
+  }
+}
