@@ -1,61 +1,27 @@
-function encode(value) {
-  return encodeURIComponent(String(value ?? ""));
-}
+function requireEnv(name) {
+  const value = process.env[name];
 
-
-function extractResult(data) {
-  if (!data) {
-    return {};
+  if (!value) {
+    throw new Error(`Missing ${name}`);
   }
 
-  const result =
-    data.result ||
-    data.data ||
-    data.video ||
-    data;
-
-  return {
-    taskId:
-      result.task_id ||
-      result.taskId ||
-      result.id ||
-      data.task_id ||
-      data.taskId ||
-      null,
-
-    fileCode:
-      result.filecode ||
-      result.file_code ||
-      result.code ||
-      data.filecode ||
-      null,
-
-    resultUrl:
-      result.url ||
-      result.link ||
-      result.result_url ||
-      result.resultUrl ||
-      null,
-
-    embedUrl:
-      result.embed_url ||
-      result.embedUrl ||
-      result.embed ||
-      null
-  };
+  return value;
 }
 
+function buildUrl(template, values) {
+  let output = template;
 
-async function requestJson(
-  url,
-  options = {}
-) {
+  for (const [key, value] of Object.entries(values)) {
+    output = output.replaceAll(
+      `{${key}}`,
+      encodeURIComponent(String(value ?? ''))
+    );
+  }
 
-  const response = await fetch(url, {
-    ...options,
-    cache: "no-store"
-  });
+  return output;
+}
 
+async function parseResponse(response) {
   const text = await response.text();
 
   let data;
@@ -70,11 +36,7 @@ async function requestJson(
 
   if (!response.ok) {
     throw new Error(
-      `${response.status}: ${
-        typeof data === "string"
-          ? data
-          : JSON.stringify(data)
-      }`
+      `${response.status}: ${text.slice(0, 500)}`
     );
   }
 
@@ -82,174 +44,232 @@ async function requestJson(
 }
 
 
-/* =========================================================
-   STREAMHG
-   ========================================================= */
+/*
+ * Generic authorized source provider.
+ *
+ * Configure:
+ *
+ * AUTH_SOURCE_URL_TEMPLATE
+ *
+ * Example:
+ *
+ * https://your-authorized-provider.example/api/source?tmdb_id={tmdb_id}&imdb_id={imdb_id}&season={season}&episode={episode}
+ *
+ * The provider should return:
+ *
+ * {
+ *   "url": "https://authorized.example/video.mp4"
+ * }
+ *
+ * or
+ *
+ * {
+ *   "url": "https://authorized.example/master.m3u8"
+ * }
+ */
+export async function getAuthorizedSource(job) {
 
-export async function streamhgUpload(
-  sourceUrl,
-  title
-) {
+  const template =
+    requireEnv('AUTH_SOURCE_URL_TEMPLATE');
 
-  const key =
-    process.env.STREAMHG_API_KEY;
+  const url = buildUrl(
+    template,
+    {
+      tmdb_id: job.tmdb_id,
+      imdb_id: job.imdb_id,
+      type: job.media_type,
+      season: job.season_number,
+      episode: job.episode_number
+    }
+  );
 
-  if (!key) {
+  const response = await fetch(url, {
+    headers: {
+      Accept: 'application/json'
+    },
+    cache: 'no-store'
+  });
+
+  const data = await parseResponse(response);
+
+  const source =
+    data.url ||
+    data.source ||
+    data.stream_url ||
+    data.streaming_url;
+
+  if (!source) {
     throw new Error(
-      "STREAMHG_API_KEY missing"
+      'Authorized source provider did not return a URL'
     );
   }
 
-  const url =
-    `https://streamhgapi.com/api/upload/url` +
-    `?key=${encode(key)}` +
-    `&url=${encode(sourceUrl)}`;
-
-  const data = await requestJson(url);
-
-  return {
-    provider: "streamhg",
-    ...extractResult(data),
-    response: data
-  };
+  return source;
 }
 
 
-/* =========================================================
-   EARNVIDS
-   ========================================================= */
+/*
+ * StreamHG
+ *
+ * Official API style:
+ *
+ * GET /api/upload/url?key=...&url=...
+ */
+export async function uploadStreamHG(sourceUrl) {
 
-export async function earnvidsUpload(
-  sourceUrl,
-  title
-) {
+  const key = requireEnv('STREAMHG_API_KEY');
 
-  const key =
-    process.env.EARNVIDS_API_KEY;
+  const endpoint =
+    'https://streamhgapi.com/api/upload/url';
 
-  if (!key) {
-    throw new Error(
-      "EARNVIDS_API_KEY missing"
-    );
-  }
+  const url = new URL(endpoint);
 
-  const url =
-    `https://earnvidsapi.com/api/upload/url` +
-    `?key=${encode(key)}` +
-    `&url=${encode(sourceUrl)}`;
+  url.searchParams.set('key', key);
+  url.searchParams.set('url', sourceUrl);
 
-  const data = await requestJson(url);
+  const response = await fetch(url, {
+    method: 'GET',
+    cache: 'no-store'
+  });
 
-  return {
-    provider: "earnvids",
-    ...extractResult(data),
-    response: data
-  };
+  return parseResponse(response);
 }
 
 
-/* =========================================================
-   GENERIC POST PROVIDER
-   ========================================================= */
+/*
+ * EarnVids
+ */
+export async function uploadEarnVids(sourceUrl) {
 
-async function postProvider({
-  provider,
+  const key = requireEnv('EARNVIDS_API_KEY');
+
+  const endpoint =
+    'https://earnvidsapi.com/api/upload/url';
+
+  const url = new URL(endpoint);
+
+  url.searchParams.set('key', key);
+  url.searchParams.set('url', sourceUrl);
+
+  const response = await fetch(url, {
+    method: 'GET',
+    cache: 'no-store'
+  });
+
+  return parseResponse(response);
+}
+
+
+/*
+ * RPMShare / Streamp2p
+ *
+ * These are configurable because your current API
+ * documentation uses POST upload-by-URL.
+ *
+ * Set:
+ *
+ * RPM_SHARE_UPLOAD_URL
+ * RPM_SHARE_API_KEY
+ *
+ * STREAMP2P_UPLOAD_URL
+ * STREAMP2P_API_KEY
+ *
+ * Adjust the authentication header in these functions
+ * to exactly match your provider's documentation.
+ */
+
+async function postUpload(
   endpoint,
   apiKey,
   sourceUrl,
   title
-}) {
+) {
 
-  if (!endpoint) {
-    throw new Error(
-      `${provider} endpoint not configured`
-    );
-  }
+  const response = await fetch(endpoint, {
+    method: 'POST',
 
-  /*
-   * This is deliberately generic.
-   *
-   * Configure the exact authentication/body required
-   * by the provider's current API documentation.
-   */
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
 
-  const body = {
-    url: sourceUrl,
-    name: title || "Video"
-  };
+      'X-API-Key': apiKey
+    },
 
-  const headers = {
-    "Content-Type": "application/json",
-    Accept: "application/json"
-  };
+    body: JSON.stringify({
+      url: sourceUrl,
+      name: title
+    }),
 
-  if (apiKey) {
-    headers.Authorization =
-      `Bearer ${apiKey}`;
-  }
+    cache: 'no-store'
+  });
 
-  const data = await requestJson(
+  return parseResponse(response);
+}
+
+
+export async function uploadRPMShare(
+  sourceUrl,
+  title
+) {
+
+  const endpoint =
+    requireEnv('RPM_SHARE_UPLOAD_URL');
+
+  const key =
+    requireEnv('RPM_SHARE_API_KEY');
+
+  return postUpload(
     endpoint,
-    {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body)
-    }
+    key,
+    sourceUrl,
+    title
   );
-
-  return {
-    provider,
-    ...extractResult(data),
-    response: data
-  };
 }
 
 
-/* =========================================================
-   RPMSHARE
-   ========================================================= */
-
-export async function rpmshareUpload(
+export async function uploadStreamp2p(
   sourceUrl,
   title
 ) {
 
-  return postProvider({
-    provider: "rpmshare",
-    endpoint:
-      process.env.RPMSHARE_UPLOAD_ENDPOINT,
-    apiKey:
-      process.env.RPMshare_API_KEY,
+  const endpoint =
+    requireEnv('STREAMP2P_UPLOAD_URL');
+
+  const key =
+    requireEnv('STREAMP2P_API_KEY');
+
+  return postUpload(
+    endpoint,
+    key,
     sourceUrl,
     title
-  });
+  );
 }
 
 
-/* =========================================================
-   STREAMP2P
-   ========================================================= */
-
-export async function streamp2pUpload(
-  sourceUrl,
-  title
+export function extractProviderUrl(
+  provider,
+  data
 ) {
 
-  return postProvider({
-    provider: "streamp2p",
-    endpoint:
-      process.env.STREAMP2P_UPLOAD_ENDPOINT,
-    apiKey:
-      process.env.STREAMP2P_API_KEY,
-    sourceUrl,
-    title
-  });
+  if (!data) {
+    return null;
+  }
+
+  const result = data.result || data.data || data;
+
+  return (
+    result.url ||
+    result.link ||
+    result.embed_url ||
+    result.embedUrl ||
+    result.player_url ||
+    result.playerUrl ||
+    result.filecode ||
+    result.code ||
+    data.url ||
+    data.link ||
+    data.embed_url ||
+    null
+  );
 }
-
-
-export const providers = {
-  streamhg: streamhgUpload,
-  earnvids: earnvidsUpload,
-  rpmshare: rpmshareUpload,
-  streamp2p: streamp2pUpload
-};
