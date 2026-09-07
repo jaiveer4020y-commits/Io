@@ -1,50 +1,40 @@
-import { NextResponse } from "next/server";
-import { getCatalog } from "@/lib/catalog";
+import { NextResponse } from 'next/server';
+import { getCatalog } from '@/lib/tmdb';
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+export const runtime = 'nodejs';
 
 export async function GET(request) {
+
   try {
-    const { searchParams } = new URL(request.url);
+
+    const { searchParams } =
+      new URL(request.url);
 
     const category =
-      searchParams.get("category") || "popular-movies";
+      searchParams.get('category');
 
-    const page = Math.max(
-      1,
-      Number(searchParams.get("page") || 1)
-    );
+    if (!category) {
+      return NextResponse.json(
+        {
+          error: 'category is required'
+        },
+        {
+          status: 400
+        }
+      );
+    }
 
-    const data = await getCatalog(category, page);
+    const data =
+      await getCatalog(category);
 
-    const mediaType =
-      category.includes("tv") ||
-      category.includes("shows")
-        ? "tv"
-        : "movie";
-
-    const results = Array.isArray(data.results)
-      ? data.results
-      : [];
-
-    return NextResponse.json({
-      success: true,
-      category,
-      page,
-      total_pages: data.total_pages || 1,
-      total_results: data.total_results || 0,
-      mediaType,
-      results
-    });
+    return NextResponse.json(data);
 
   } catch (error) {
 
-    console.error("[CATALOG]", error);
+    console.error('[CATALOG]', error);
 
     return NextResponse.json(
       {
-        success: false,
         error: error.message
       },
       {
